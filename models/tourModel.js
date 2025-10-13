@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
 
+// Validators
+// required
+// maxlength: [40, 'A tour n'] - on strings
+// minlenght
+// min - numbers
+// max - numbers
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -8,6 +15,15 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
+      maxlength: [
+        40,
+        'A tour name must have less than or equal to 40 characters',
+      ],
+      minlength: [
+        10,
+        'A tour name must have more than or equal to 10 characters',
+      ],
+      // validate: [validator.isAlpha, 'Tour name must only contain characters'],
     },
     slug: String,
     duration: {
@@ -21,17 +37,33 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'A tour must have a difficulty'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either easy, medium, difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be less than 5.0'],
     },
     ratingsQuantity: {
       type: Number,
       default: 0,
     },
     price: { type: Number, required: [true, 'A tour must have  a price'] },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      // this keyword doesnt work when updating
+      // works only when creating a new document
+      validate: {
+        validator: function (val) {
+          return val < this.price; //100 < 200 -> true - no validation error
+        },
+        message: 'Price discount ({VALUE}) should be below the regular price',
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -88,6 +120,20 @@ tourSchema.pre('save', function (next) {
 // executed before all the queries are executed
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds`); //time after the query has executed
+  //   console.log(docs);
+
+  next();
+});
+
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
   next();
 });
 
