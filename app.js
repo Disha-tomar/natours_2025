@@ -1,8 +1,8 @@
- const express = require('express');
+const express = require('express');
 const morgan = require('morgan');
 
 const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController')
+const globalErrorHandler = require('./controllers/errorController');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
@@ -61,10 +61,10 @@ app.all('*', (req, res, next) => {
   // err.statusCode = 404;
 
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-})
+});
 
 // global error handling middleware
-app.use(globalErrorHandler)
+app.use(globalErrorHandler);
 
 // tourRouter.route('/').get(getAllTours).post(createTour);
 // tourRouter
