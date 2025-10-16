@@ -4,16 +4,16 @@ const morgan = require('morgan');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
+const app = express();
+app.use(express.json()); //middleware
+
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-
-const app = express();
 
 // 1) Middlewares
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev')); // used for logging
 }
-app.use(express.json()); //middleware
 
 app.use(express.static(`${__dirname}/public`)); //serve static files from folder and not from a route
 
