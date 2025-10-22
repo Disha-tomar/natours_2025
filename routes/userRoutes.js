@@ -8,6 +8,16 @@ const router = express.Router();
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
+router.post('/forgotPassword', authController.forgotPassword); //recieve the email address
+router.patch('/resetPassword/:token', authController.resetPassword); //recieve the token as well as the new password
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword,
+);
+
+router.patch('/updateMe', authController.protect, userController.updateMe);
+
 router
   .route('/')
   .get(userController.getAllUsers)
