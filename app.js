@@ -1,19 +1,35 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
-app.use(express.json()); //middleware
+//body parser, reading data from the body
+app.use(express.json({ limit: '10kb' })); //middleware
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
-// 1) Middlewares
+// 1) Global Middlewares
+// Set Security http headers
+app.use(helmet());
+
+// Development logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev')); // used for logging
 }
+
+// Limit requests from same IP - allow 100 requests from the same IP in 1 hour
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!', // 429 -> too many requests
+});
+
+app.use('/api', limiter);
 
 app.use(express.static(`${__dirname}/public`)); //serve static files from folder and not from a route
 
@@ -22,7 +38,7 @@ app.use(express.static(`${__dirname}/public`)); //serve static files from folder
 //   console.log('Hello from the middleware 🖐️');
 //   next();
 // });
-// middleware
+// test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
