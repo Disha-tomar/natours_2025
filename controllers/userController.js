@@ -31,6 +31,14 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       ),
     );
   }
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
 
   // 2) Filtered out unwanted names that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'email');
